@@ -19,11 +19,20 @@ export default async function SubmissionsPage({
 
   const status = searchParams.status || "pending"
 
-  // Fetch submissions
+  // Fetch submissions with tags
   const result = await sql`
-    SELECT * FROM submissions
-    WHERE status = ${status}
-    ORDER BY submitted_at DESC
+    SELECT
+      s.*,
+      COALESCE(
+        array_agg(t.name) FILTER (WHERE t.name IS NOT NULL),
+        ARRAY[]::text[]
+      ) as tags
+    FROM submissions s
+    LEFT JOIN submission_tags st ON s.id = st.submission_id
+    LEFT JOIN tags t ON st.tag_id = t.id
+    WHERE s.status = ${status}
+    GROUP BY s.id
+    ORDER BY s.created_at DESC
   `
 
   const submissions = result.rows
@@ -34,23 +43,23 @@ export default async function SubmissionsPage({
         <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
           Review Submissions
         </h1>
-        <p className="text-slate-400">Review and moderate community submissions</p>
+        <p className="text-slate-700 dark:text-slate-400">Review and moderate community submissions</p>
       </div>
 
       <Tabs defaultValue={status} className="w-full">
-        <TabsList className="bg-slate-800 border-slate-700">
+        <TabsList className="bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-700">
           <TabsTrigger value="pending" asChild>
-            <a href="/admin/submissions?status=pending" className="data-[state=active]:bg-slate-700">
+            <a href="/admin/submissions?status=pending" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700">
               Pending
             </a>
           </TabsTrigger>
           <TabsTrigger value="approved" asChild>
-            <a href="/admin/submissions?status=approved" className="data-[state=active]:bg-slate-700">
+            <a href="/admin/submissions?status=approved" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700">
               Approved
             </a>
           </TabsTrigger>
           <TabsTrigger value="rejected" asChild>
-            <a href="/admin/submissions?status=rejected" className="data-[state=active]:bg-slate-700">
+            <a href="/admin/submissions?status=rejected" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700">
               Rejected
             </a>
           </TabsTrigger>
@@ -58,10 +67,10 @@ export default async function SubmissionsPage({
 
         <TabsContent value={status} className="mt-6">
           {submissions.length === 0 ? (
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card className="border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/50">
               <CardHeader>
-                <CardTitle className="text-white">No submissions</CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardTitle className="text-slate-900 dark:text-white">No submissions</CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400">
                   No {status} submissions at the moment.
                 </CardDescription>
               </CardHeader>

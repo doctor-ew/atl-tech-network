@@ -6,6 +6,7 @@ import { Rubik } from "next/font/google"
 import { SessionProvider } from "@/components/auth/session-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { CustomCursor } from "@/components/custom-cursor"
+import { Toaster } from "sonner"
 import "./globals.css"
 
 const rubik = Rubik({
@@ -40,6 +41,7 @@ html {
       <body className={`${rubik.variable} antialiased`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <CustomCursor />
+          <Toaster richColors position="top-right" />
           <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
       </body>

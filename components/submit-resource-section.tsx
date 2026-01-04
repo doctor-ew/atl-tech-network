@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { Send, CheckCircle, Calendar } from "lucide-react"
+import { toast } from "sonner"
+import { Send, CheckCircle, Calendar, AlertCircle } from "lucide-react"
 import { AnimatedCard } from "@/components/animated-card"
 
 interface FormData {
@@ -42,7 +42,6 @@ export function SubmitResourceSection() {
     website: "", // Honeypot - should stay empty
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { toast } = useToast()
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -54,10 +53,9 @@ export function SubmitResourceSection() {
 
     // Basic client-side validation
     if (!formData.type || !formData.name || !formData.description || !formData.link || !formData.submittedBy) {
-      toast({
-        title: "Missing Information",
+      toast.error("Missing Information", {
         description: "Please fill in all required fields.",
-        variant: "destructive",
+        icon: <AlertCircle className="w-4 h-4" />,
       })
       setIsSubmitting(false)
       return
@@ -96,10 +94,9 @@ export function SubmitResourceSection() {
 
       if (response.status === 429) {
         // Rate limited
-        toast({
-          title: "Too Many Submissions",
+        toast.error("Too Many Submissions", {
           description: data.error || "Please try again later.",
-          variant: "destructive",
+          icon: <AlertCircle className="w-4 h-4" />,
         })
         setIsSubmitting(false)
         return
@@ -114,19 +111,20 @@ export function SubmitResourceSection() {
               .join(", ")
           : data.error || "Failed to submit resource"
 
-        toast({
-          title: "Submission Failed",
+        toast.error("Submission Failed", {
           description: errorMessage,
-          variant: "destructive",
+          icon: <AlertCircle className="w-4 h-4" />,
+          duration: 5000,
         })
         setIsSubmitting(false)
         return
       }
 
       // Success
-      toast({
-        title: "Suggestion Sent!",
+      toast.success("Suggestion Sent!", {
         description: data.message || "Your resource suggestion has been submitted for review.",
+        icon: <CheckCircle className="w-4 h-4" />,
+        duration: 6000,
       })
 
       // Reset form
@@ -144,10 +142,9 @@ export function SubmitResourceSection() {
         website: "",
       })
     } catch (error) {
-      toast({
-        title: "Submission Failed",
+      toast.error("Submission Failed", {
         description: "Something went wrong. Please try again.",
-        variant: "destructive",
+        icon: <AlertCircle className="w-4 h-4" />,
       })
     } finally {
       setIsSubmitting(false)
