@@ -3,6 +3,9 @@ import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Rubik } from "next/font/google"
+import { SessionProvider } from "@/components/auth/session-provider"
+import { ThemeProvider } from "@/components/theme-provider"
+import { CustomCursor } from "@/components/custom-cursor"
 import "./globals.css"
 
 const rubik = Rubik({
@@ -23,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <style>{`
 html {
@@ -34,7 +37,12 @@ html {
 }
         `}</style>
       </head>
-      <body className={`${rubik.variable} antialiased`}>{children}</body>
+      <body className={`${rubik.variable} antialiased`} suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <CustomCursor />
+          <SessionProvider>{children}</SessionProvider>
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

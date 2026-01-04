@@ -1,22 +1,42 @@
 import { ResourceCard } from "./resource-card"
-import { sampleMeetups } from "@/lib/sample-data"
+import { sql } from "@vercel/postgres"
 import Link from "next/link"
 
-export function MeetupSection() {
-  const getRandomMeetups = () => {
-    const shuffled = [...sampleMeetups].sort(() => 0.5 - Math.random())
-    return shuffled.slice(0, 3)
-  }
+export async function MeetupSection() {
+  // Fetch approved meetups from database with tags
+  const result = await sql`
+    SELECT
+      r.*,
+      COALESCE(
+        array_agg(t.name) FILTER (WHERE t.name IS NOT NULL),
+        ARRAY[]::text[]
+      ) as tags
+    FROM resources r
+    LEFT JOIN resource_tags rt ON r.id = rt.resource_id
+    LEFT JOIN tags t ON rt.tag_id = t.id
+    WHERE r.type = 'meetup' AND r.status = 'approved'
+    GROUP BY r.id
+    ORDER BY RANDOM()
+    LIMIT 3
+  `
 
-  const displayMeetups = getRandomMeetups()
+  const displayMeetups = result.rows.map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    link: row.link,
+    image: row.image || "https://placehold.co/600x400/1e293b/38bdf8?text=Meetup",
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    type: "meetup" as const,
+  }))
 
   return (
     <section id="meetups" className="scroll-mt-20">
       <div className="text-center mb-12">
-        <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-green-400 bg-clip-text text-transparent">
+        <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-green-400 bg-clip-text text-transparent">
           Local Meetup Groups
         </h2>
-        <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+        <p className="text-xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto">
           Connect with Atlanta's vibrant tech community through regular meetups, workshops, and networking events
         </p>
       </div>
