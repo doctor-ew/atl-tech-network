@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, ExternalLink, Calendar, User, Mail } from "lucide-react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 interface Submission {
   id: number
@@ -27,7 +27,6 @@ interface Submission {
 export function SubmissionReviewCard({ submission }: { submission: Submission }) {
   const [isProcessing, setIsProcessing] = useState(false)
   const router = useRouter()
-  const { toast } = useToast()
 
   const handleApprove = async () => {
     setIsProcessing(true)
@@ -40,17 +39,15 @@ export function SubmissionReviewCard({ submission }: { submission: Submission })
         throw new Error("Failed to approve submission")
       }
 
-      toast({
-        title: "Approved!",
+      toast.success("Approved!", {
         description: `${submission.name} has been approved and added to the site.`,
+        icon: <CheckCircle className="w-4 h-4" />,
       })
 
       router.refresh()
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to approve submission. Please try again.",
-        variant: "destructive",
       })
     } finally {
       setIsProcessing(false)
@@ -68,17 +65,15 @@ export function SubmissionReviewCard({ submission }: { submission: Submission })
         throw new Error("Failed to reject submission")
       }
 
-      toast({
-        title: "Rejected",
+      toast.success("Rejected", {
         description: `${submission.name} has been rejected.`,
+        icon: <XCircle className="w-4 h-4" />,
       })
 
       router.refresh()
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to reject submission. Please try again.",
-        variant: "destructive",
       })
     } finally {
       setIsProcessing(false)
@@ -93,7 +88,7 @@ export function SubmissionReviewCard({ submission }: { submission: Submission })
   }
 
   return (
-    <Card className="border-slate-700 bg-slate-800/50">
+    <Card className="border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/50">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -101,14 +96,14 @@ export function SubmissionReviewCard({ submission }: { submission: Submission })
               <Badge className={typeColors[submission.type] || "bg-slate-500/10 text-slate-500"}>
                 {submission.type}
               </Badge>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-600 dark:text-slate-400">
                 Submitted {new Date(submission.submitted_at).toLocaleDateString()}
               </span>
             </div>
-            <CardTitle className="text-white text-xl">{submission.name}</CardTitle>
+            <CardTitle className="text-slate-900 dark:text-white text-xl">{submission.name}</CardTitle>
           </div>
         </div>
-        <CardDescription className="text-slate-300 mt-2">{submission.description}</CardDescription>
+        <CardDescription className="text-slate-700 dark:text-slate-300 mt-2">{submission.description}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -127,7 +122,7 @@ export function SubmissionReviewCard({ submission }: { submission: Submission })
 
         {/* Conference Dates */}
         {(submission.conference_date || submission.cfp_date) && (
-          <div className="flex flex-wrap gap-4 text-sm text-slate-400">
+          <div className="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400">
             {submission.conference_date && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
@@ -147,7 +142,7 @@ export function SubmissionReviewCard({ submission }: { submission: Submission })
         {submission.tags && submission.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {submission.tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="border-slate-600 text-slate-300">
+              <Badge key={tag} variant="outline" className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300">
                 {tag}
               </Badge>
             ))}
@@ -155,7 +150,7 @@ export function SubmissionReviewCard({ submission }: { submission: Submission })
         )}
 
         {/* Submitter Info */}
-        <div className="pt-4 border-t border-slate-700 space-y-2 text-sm text-slate-400">
+        <div className="pt-4 border-t border-slate-300 dark:border-slate-700 space-y-2 text-sm text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4" />
             <span>Submitted by: {submission.submitted_by}</span>
@@ -172,7 +167,7 @@ export function SubmissionReviewCard({ submission }: { submission: Submission })
       </CardContent>
 
       {submission.status === "pending" && (
-        <CardFooter className="flex gap-3 border-t border-slate-700 pt-6">
+        <CardFooter className="flex gap-3 border-t border-slate-300 dark:border-slate-700 pt-6">
           <Button
             onClick={handleApprove}
             disabled={isProcessing}

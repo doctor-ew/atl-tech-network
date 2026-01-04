@@ -32,7 +32,7 @@ export default async function SubmissionsPage({
     LEFT JOIN tags t ON st.tag_id = t.id
     WHERE s.status = ${status}
     GROUP BY s.id
-    ORDER BY s.created_at DESC
+    ORDER BY s.submitted_at DESC
   `
 
   const submissions = result.rows
