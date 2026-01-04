@@ -12,7 +12,7 @@ export function Hero() {
           Atlanta Tech Network
         </h1>
         <p
-          className="text-xl md:text-2xl text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-up"
+          className="text-xl md:text-2xl text-slate-200 dark:text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-up"
           style={{ animationDelay: "0.2s" }}
         >
           Discover meetups, conferences, and resources to connect with Atlanta's thriving tech scene

@@ -1,57 +1,46 @@
 import { ResourceCard } from "./resource-card"
-import { sampleConferences } from "@/lib/sample-data"
+import { sql } from "@vercel/postgres"
 import Link from "next/link"
 
-export function ConferenceSection() {
-  const getUpcomingConferences = () => {
-    const today = new Date()
+export async function ConferenceSection() {
+  // Fetch upcoming conferences from database
+  const result = await sql`
+    SELECT
+      r.*,
+      COALESCE(
+        array_agg(t.name) FILTER (WHERE t.name IS NOT NULL),
+        ARRAY[]::text[]
+      ) as tags
+    FROM resources r
+    LEFT JOIN resource_tags rt ON r.id = rt.resource_id
+    LEFT JOIN tags t ON rt.tag_id = t.id
+    WHERE r.type = 'conference'
+      AND r.status = 'approved'
+      AND (r.conference_date IS NULL OR r.conference_date >= CURRENT_DATE)
+    GROUP BY r.id
+    ORDER BY r.conference_date ASC NULLS LAST
+    LIMIT 3
+  `
 
-    // Parse conference dates and sort chronologically
-    const conferencesWithDates = sampleConferences.map((conference) => {
-      let conferenceDate = new Date()
-
-      if (conference.conferenceDate) {
-        // Parse dates like "April 15-17, 2025" or "October 8-10, 2025"
-        const dateMatch = conference.conferenceDate.match(/(\w+)\s+(\d+)(?:-\d+)?,\s+(\d{4})/)
-        if (dateMatch) {
-          const [, month, day, year] = dateMatch
-          const monthIndex = new Date(`${month} 1, 2000`).getMonth()
-          conferenceDate = new Date(Number.parseInt(year), monthIndex, Number.parseInt(day))
-        }
-      }
-
-      return {
-        ...conference,
-        parsedDate: conferenceDate,
-      }
-    })
-
-    // Filter for upcoming conferences and sort by date
-    const upcomingConferences = conferencesWithDates
-      .filter((conference) => conference.parsedDate >= today)
-      .sort((a, b) => a.parsedDate.getTime() - b.parsedDate.getTime())
-
-    // If we don't have enough upcoming conferences, add some past ones
-    if (upcomingConferences.length < 3) {
-      const pastConferences = conferencesWithDates
-        .filter((conference) => conference.parsedDate < today)
-        .sort((a, b) => b.parsedDate.getTime() - a.parsedDate.getTime()) // Most recent first
-
-      return [...upcomingConferences, ...pastConferences].slice(0, 3)
-    }
-
-    return upcomingConferences.slice(0, 3)
-  }
-
-  const displayConferences = getUpcomingConferences()
+  const displayConferences = result.rows.map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    link: row.link,
+    image: row.image || "https://placehold.co/600x400/1e293b/f97316?text=Conference",
+    conferenceDate: row.conference_date,
+    cfpDate: row.cfp_date,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    type: "conference" as const,
+  }))
 
   return (
     <section id="conferences" className="scroll-mt-20">
       <div className="text-center mb-12">
-        <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-green-400 bg-clip-text text-transparent">
+        <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-green-400 bg-clip-text text-transparent">
           Tech Conferences
         </h2>
-        <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+        <p className="text-xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto">
           Attend premier tech conferences in Atlanta and the Southeast region, featuring industry leaders and
           cutting-edge topics
         </p>
@@ -77,7 +66,7 @@ export function ConferenceSection() {
 
       {/* Additional info about CFP dates */}
       <div className="mt-8 text-center">
-        <p className="text-sm text-slate-400">CFP = Call for Proposals submission deadline</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">CFP = Call for Proposals submission deadline</p>
       </div>
     </section>
   )
